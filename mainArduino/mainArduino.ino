@@ -14,18 +14,17 @@ const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 // time variable
-int timeLimit = 5 * 60000; // 5 minutes = 5 * 60000ms
-int startTime, currTime, timeRemaining;
+const long timeLimit = 5 * 60000; // 5 minutes = 5 * 60000ms
+unsigned long startTime, currTime, timeRemaining;
 
 // puzzle variables
-int solved1, solved2, solved3; // 0 means not solved, 1 means solved
-int bombStatus; // keep track of puzzle 3 whether player cuts correct wire, -1 means explode, 0 means nothing, 1 means defused
+int solved1, solved2, solved3; // 0 means not solved, 1 means solved. For puzzle3 -1 means explode, 0 means nothing, 1 means defused
+int bombStatus; // -1 means explode, 0 means nothing, 1 means defused
 int keyOpened, rewardOpened;
 
-// lcd message format
-
-// Signals from puzzle arduino
-int signalFrom;
+// Signals received from and sent to puzzle arduino
+int signalReceived;
+int signalSent;
 
 // lcd functions
 void clearRow(int i) { // clear row i (i = 0 or 1)
@@ -40,14 +39,13 @@ void writeRow(int i, char* message) {
 }
 
 // time function
-int getTime() {
+void getTime() { // get the remaining time
     currTime = millis();
-    int diff = (timeLimit - (currTime - startTime)) / 1000;
-    if (diff <= 0) return 0;
-    return diff;
+    int timeRemaining = (timeLimit - (currTime - startTime)) / 1000;
+    if (timeRemaining <= 0) timeRemaining; // edge case where we have negative time
 }
 
-void printTime() {
+void printTime() { // print timeRemaining
     char timeMessage[17];
     clearRow(1);
     sprintf(timeMessage, "%d seconds", timeRemaining);
@@ -74,6 +72,8 @@ void triggerBomb() {
     solved1 = 0; solved2 = 0; solved3 = 0;
     bombStatus = 0;    
     keyOpened = 0; rewardOpened = 0;
+
+    // sent signal to puzzle arduino to open puzzle 1 TODO
 }
 
 // explode when cut wrong wire, stop timer
@@ -84,10 +84,8 @@ void explode() {
     writeRow(0, "Game Over");
 
     // stop timer
-    timeRemaining = getTime();
+    getTime();
     printTime();
-    
-    // open reward TODO
 
     // invoke buzzer TODO
     
@@ -101,8 +99,11 @@ void defused() {
     writeRow(0, "Victory!");
 
     // stop timer
-    timeRemaining = getTime();
+    getTime();
     printTime();
+
+    // open reward TODO
+    keyOpened = 1;
 
     // invoke buzzer TODO
 
@@ -110,12 +111,12 @@ void defused() {
 
 // check the current timer and decide whether to end the game
 void checkTimer() {
-    timeRemaining = getTime();
+    getTime();
     if (timeRemaining == 0) explode();
     else printTime();
 }
 
-// get message from puzzle arduino
+// get signal from puzzle arduino
 /*
     1: puzzle 1 solved
     2: puzzle 2 solved
@@ -124,7 +125,7 @@ void checkTimer() {
 */
 void updateFromPuzzler() {
     if (Serial.available()) {
-        signalFrom = Serial.read(); // get signals from puzzle arduino
+        signalReceived = Serial.read();
     }
 }
 
@@ -132,11 +133,11 @@ void updateFromPuzzler() {
 // check status of puzzle 3
 void check3() {
     if (!solved3) {
-        if (signalFrom == -1) {
+        if (signalReceived == -1) {
             solved3 = - 1;
             explode(); // explode
         }
-        else if (signalFrom == 1)  {
+        else if (signalReceived == 1)  {
             solved3 = 1;
             defused(); // defuse
         }
@@ -145,10 +146,10 @@ void check3() {
 
 // check status of puzzle 2
 void check2() {
-    if (!solved2 && signalFrom == 2) {
+    if (!solved2 && signalReceived == 2) {
         // print message that puzzle 2 is solved TODO
 
-        // send to puzzle arduino to trigger hint for puzzle 3
+        // send to puzzle arduino to trigger hint for puzzle 3 TODO
         
         writeRow(0, "Puzzle 2 solved!");
         solved2 = 1;
@@ -157,12 +158,13 @@ void check2() {
 
 // check status of puzzle 1
 void check1() {
-    if (!solved1 && signalFrom == 1) {
+    if (!solved1 && signalReceived == 1) {
         // print message that puzzle 1 is solved TODO
 
-        // open key chest
+        // open key chest TODO
+        keyOpened = 1;
 
-        // send to puzzle arduino to trigger hint for puzzle 2
+        // send to puzzle arduino to trigger hint for puzzle 2 TODO
 
         writeRow(0, "Puzzle 1 solved!");
         solved1 = 1;
