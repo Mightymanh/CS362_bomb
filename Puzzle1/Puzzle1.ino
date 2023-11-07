@@ -13,7 +13,7 @@ const int interval = 25;
 unsigned long prevMillis = 0;
 
 int answerArray[4];
-int correctAnswer[4] = {3,0,1,2};
+int correctAnswer[4] = {3,0,2,1};
 int count = 0;
 
 int button1State, button2State,
@@ -23,8 +23,8 @@ int buttonStatus1, buttonStatus2,
     buttonStatus3, buttonStatus4;
 
 int ledCycleCount = 0;
-int ledTime = 0;
-int ledInterval = 1000;
+unsigned long ledTime = 0;
+const long ledInterval = 1000;
 
 
 void ledCycle () {
@@ -63,6 +63,7 @@ void ledCycle () {
         digitalWrite(led1, LOW);
         digitalWrite(led2, LOW);
     }
+    //Serial.println(cycleNum);
     ledCycleCount++;
 }
 
@@ -72,7 +73,7 @@ void checkAnswer () {
             continue;
         } else {
             //serial communicate failure
-
+            Serial.println("Failed");
             return;
         }
     }
@@ -147,5 +148,6 @@ void loop() {
     if (currentMillis - ledTime > ledInterval) {
         ledCycle();
         ledTime = currentMillis;
+        //Serial.println(ledTime);
     }
 }
