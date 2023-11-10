@@ -70,7 +70,6 @@ void triggerBomb() {
     // init puzzle status
     solved1 = 0; solved2 = 0; solved3 = 0;
     bombStatus = 0;    
-    keyOpened = 0; rewardOpened = 0;
 
     // sent signal to puzzle arduino to open puzzle 1 TODO
     Serial.write('1');
@@ -152,7 +151,7 @@ void check3() {
 void check2() {
     if (!solved2 && signalReceived == '2') {
         // send to puzzle arduino to trigger hint for puzzle 3 TODO
-        Serial.write(3);
+        Serial.write('3');
         
         // print message
         writeRow(0, "Puzzle 2 solved!");
