@@ -1,8 +1,9 @@
 #include <IRremote.h>
 
-const int RECV_PIN = 11;
-IRrecv IR(11);
+const int RECV_PIN = 6;
+IRrecv IR(RECV_PIN);
 decode_results results;
+unsigned long decode;
 
 void setup(){
   Serial.begin(9600);
@@ -11,8 +12,9 @@ void setup(){
 
 void loop(){
   if(IR.decode()) {
-    Serial.println(IR.decodedIRData.decodedRawData, HEX); 
-    delay(1500);
+    decode = IR.decodedIRData.decodedRawData;
+    Serial.println(decode); 
+    //delay(1500);
     IR.resume(); 
   }
 }
