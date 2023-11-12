@@ -3,8 +3,8 @@ THIS CODE IS NOT TESTED YET
 */
 
 
-const int led1 = 12;
-const int led2 = 2;
+const int led1 = 10;
+const int led2 = 13;
 const int button1 = 6;
 const int button2 = 7;
 const int button3 = 8;
