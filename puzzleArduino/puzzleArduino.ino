@@ -92,7 +92,7 @@ int triggerHint3;
 int gameStatus; // 1 means games on going, 0 means game finished
 
 // DEBUG variable
-int DEBUG = 1; 
+int DEBUG = 0; 
 
 
 // lcd functions
@@ -249,6 +249,9 @@ void validateAnswer() {
         //puzzle is solved!
         solved2 = 1;
         Serial.println("solved!");
+        lcd.clear();
+        writeRow(0, "Hint: 25225");
+        writeRow(1, "Use your phone!");
     }
 }
 
@@ -412,18 +415,19 @@ void puzzle3() {
         //if (DEBUG) lcd.print("bomb ticking");
     }
     else if (valBrown == 0 || valWhite == 0 || valGreen == 0) {
-        if (DEBUG) {
-            writeRow(0, "exploded");
-            //Serial.println("exploded!");
-        }
+        lcd.clear();
+        writeRow(0, "Game over!");
+
+
         Serial.write('4');
         gameStatus = 0;
     }
     else if (valBlack == 0) {
-        if (DEBUG) {
-            writeRow(0, "correct");
-            //Serial.println("correct!");
-        }
+
+        lcd.clear();
+        writeRow(0, "Congratulations");
+        //Serial.println("correct!");
+
         Serial.write('3');
         solved3 = 1;
         gameStatus = 0;
@@ -481,6 +485,6 @@ void loop() {
     if (gameStatus) {
         if (trigger1 && !solved1) puzzle1();
         if (trigger2 && !solved2) puzzle2();
-        //if (trigger3 && !solved3) puzzle3();
+        if (trigger3 && !solved3) puzzle3();
     }
 }
