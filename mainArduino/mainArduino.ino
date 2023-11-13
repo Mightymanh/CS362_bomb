@@ -119,7 +119,7 @@ void rollMessage(char* message) {
         temp++;
         prevMillis = millis();
         currentMillis = millis();
-        while (currentMillis - prevMillis < 300) {
+        while (currentMillis - prevMillis < 225) {
             if (IR.decode()) { // skip
                 valFromRemote = IR.decodedIRData.decodedRawData;
                 if (valFromRemote != 0) {
@@ -248,12 +248,20 @@ void updateFromRemote() {
                 bombStatus = -1;
                 writeRow(0, "Reset Bomb");
                 writeRow(1, "Press to start");
-                countResetStart = 1;
+                countResetStart++;
             }
-            else if (countResetStart == 1) { 
+
+            else if (countResetStart == 2) { 
                 freshStart();
+                countResetStart++;
+            }  
+            else if (countResetStart == 4) {
                 countResetStart = 0;
-            }    
+            } 
+            else {
+                countResetStart++;
+            }
+
         }
         IR.resume(); 
     }
