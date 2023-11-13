@@ -109,6 +109,9 @@ void writeRow(int i, char* message) {
 
 // reset the puzzles
 void freshStart() {
+    questionNumber = 0;
+    updateGlobals();
+    memset(answerArray, -1, sizeof(answerArray));
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Hi players!");
@@ -215,14 +218,22 @@ void questionInput() {
     ones = map(POTValue2,0,1000,0,9);
 
     lcd.setCursor(0,1);
-    char inputString[16];
-    snprintf(inputString, 16, "Input: %d%d", tens, ones);
-    lcd.print(inputString);
+    char inputString[20];
+    sprintf(inputString, "Input: %d%d  Q:%d", tens, ones, questionNumber);
+    writeRow(1, inputString);
 }
 
+
+//globals to help manage the text scrolling
+// char* message;
+// int length;
+// char copy[500];
+// char* temp;
+// char* end;
+// char holder;
 //used to make sure that the text is properly aligned when the question changes
 void updateGlobals() {
-    memset(message, 0, sizeof(message));
+    strcpy(message, "");
     message = questionArray[questionNumber];
     length = strlen(message);
     memset(copy, 0, sizeof(copy));
@@ -455,6 +466,7 @@ void setup() {
   
 
     // Initialize the LCD
+    
     lcd.setCursor(0,0);
     pinMode(submitButton, INPUT);
     submitStatus = digitalRead(submitButton);
