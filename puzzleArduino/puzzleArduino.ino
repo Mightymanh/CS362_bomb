@@ -140,10 +140,8 @@ void updateFromMain() {
 
         if (signalReceived == '1') {
             if (!trigger1 || !trigger3) {
-                if (DEBUG) {
-                    writeRow(0, "start game");
-                    //Serial.println("start the game: trigger puzzle 1 and 3");
-                }
+                
+                writeRow(0, "start game");
                 gameStatus = 1;
                 trigger1 = 1;   // trigger puzzle 1
                 trigger3 = 1;   // trigger puzzle 3
