@@ -54,7 +54,7 @@ int questionNumber = 0;
 //globals to help manage the text scrolling
 char* message;
 int length;
-char copy[500];
+char copy[200];
 char* temp;
 char* end;
 char holder;
@@ -233,10 +233,9 @@ void questionInput() {
 // char holder;
 //used to make sure that the text is properly aligned when the question changes
 void updateGlobals() {
-    strcpy(message, "");
+    //strcpy(message, questionArray[questionNumber]);
     message = questionArray[questionNumber];
     length = strlen(message);
-    memset(copy, 0, sizeof(copy));
     strcpy(copy, message);
     temp = copy;
     end = copy + length;
