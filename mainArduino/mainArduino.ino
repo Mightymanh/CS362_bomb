@@ -2,10 +2,10 @@
 #include <LiquidCrystal.h>
 #include <Servo.h>
 
-char introMessage[] = "Welcome player! Please pay attention to this screen."
-                    "Your job is to defuse a bomb triggered by the CS 362 Riddlers working at Troy's Organization."
-                    "Your goal is to cut the correct wire in under 5 minutes."
-                    "Good luck with your defusal journey and your timer starts very soon **HAHAHAHAHAHAHAHAHAHAHA** - CS 362 Riddlers";
+char introMessage[] = "Welcome player! Please pay attention to this screen. "
+                    "Your job is to defuse a bomb triggered by the CS 362 Riddlers working at Troy's Organization. "
+                    "Your goal is to cut the correct wire in under 5 minutes (300 seconds). "
+                    "Good luck with your defusal journey and your timer starts very soon **HAHAHAHAHAHAHAHAHAHAHA** - CS 362 Riddlers ";
 
 // components
 Servo servoKey, servoReward;
@@ -16,6 +16,13 @@ const int RECV_PIN = 6; // remote control
 IRrecv IR(RECV_PIN); // remote control
 unsigned long valFromRemote;
 
+// led blinking
+int led1 = 13, led2 = 7; // blinking
+int ledCycleCount = 0;
+unsigned long ledTime = 0;
+const long ledInterval = 1000;
+
+// remote variables
 int countResetStart = 0;
 
 // time variable
@@ -29,6 +36,52 @@ int bombStatus; // -1 means explode, 0 means nothing, 1 means defused
 // Signals received from puzzle arduino
 char signalReceived;
 
+
+// led blinking functions
+void ledCycle () {
+    unsigned long currentMillis = millis();
+
+    if (currentMillis - ledTime > ledInterval) {
+        int cycleNum = ledCycleCount % 6;
+
+        //int correctAnswer[4] = {3,0,1,2};
+        if (cycleNum == 0) {
+
+            //display 3
+            digitalWrite(led1, HIGH);
+            digitalWrite(led2, HIGH);
+        } else if (cycleNum == 1) {
+
+            //display 0
+            digitalWrite(led1, LOW);
+            digitalWrite(led2, LOW);
+        } else if (cycleNum == 2) {
+
+            //display 1
+            digitalWrite(led1, HIGH);
+            digitalWrite(led2, LOW);
+        } else if (cycleNum == 3) {
+
+            //display 2
+            digitalWrite(led1, LOW);
+            digitalWrite(led2, HIGH);
+        } else if (cycleNum == 4) {
+            
+            // empty to reset and not confuse player
+            digitalWrite(led1, LOW);
+            digitalWrite(led2, LOW);
+        } else if (cycleNum == 5) {
+            
+            //empty to reset and not confuse player
+            digitalWrite(led1, LOW);
+            digitalWrite(led2, LOW);
+        }
+        //Serial.println(cycleNum);
+        ledCycleCount++;
+        ledTime = currentMillis;
+    }
+}
+
 // lcd functions
 void clearRow(int i) { // clear row i (i = 0 or 1)
     lcd.setCursor(0, i);
@@ -39,6 +92,45 @@ void writeRow(int i, char* message) {
     clearRow(i);
     lcd.setCursor(0, i);
     lcd.print(message);
+}
+
+void rollMessage(char* message) {
+    int length = strlen(message);
+    char copy[500];
+    strcpy(copy, message);
+    char* temp = copy;
+    char* end = copy + length;
+    char holder;
+    int sizeDisplay;
+    unsigned long prevMillis, currentMillis;
+    int count = 0;
+    writeRow(1, "Press to skip");
+    do {
+
+        if (end - temp >= 16) sizeDisplay = 16;
+        else sizeDisplay = end - temp;
+        holder = temp[sizeDisplay];
+        temp[sizeDisplay] = '\0';
+
+        writeRow(0, temp);
+
+        temp[sizeDisplay] = holder;
+
+        temp++;
+        prevMillis = millis();
+        currentMillis = millis();
+        while (currentMillis - prevMillis < 300) {
+            if (IR.decode()) { // skip
+                valFromRemote = IR.decodedIRData.decodedRawData;
+                if (valFromRemote != 0) {
+                    if (count == 2) return;
+                    else count++;
+                }
+                IR.resume();
+            }
+            currentMillis = millis();
+        }
+    } while(temp != end);
 }
 
 // time function
@@ -58,13 +150,15 @@ void printTime() { // print timeRemaining
 
 // display intro message scrolling left on lcd, delay each time scrolling down by 10 seconds
 void displayIntroMessage() {
-    clearRow(0);
-    lcd.setCursor(0, 0);
-    lcd.print("Welcome player!");  // right now just a simple message, we will implement scrolling left TODO
+    rollMessage(introMessage);
+    // clearRow(0);
+    // lcd.setCursor(0, 0);
+    // lcd.print("Welcome player!");  // right now just a simple message, we will implement scrolling left TODO
 } 
 
 // start the timer, initialize all components to 0
 void triggerBomb() {
+    writeRow(0, "Good luck! :(");
     // init time
     startTime = millis();
     timeRemaining = timeLimit / 1000;
@@ -218,11 +312,16 @@ void setup() {
     servoReward.write(0);
     IR.enableIRIn(); // remote control
 
+    // blinking setup
+    pinMode(led1, OUTPUT);
+    pinMode(led2, OUTPUT);
+
     // start the bomb
     freshStart();
 }
 
 void loop() {
+    ledCycle(); // blinking
     updateFromRemote(); // for reset bomb and stop bomb
 
     // if bomb is running then do puzzles
