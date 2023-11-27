@@ -1,3 +1,14 @@
+/*
+    Team Number: 7
+    Members: Manh Phan, dphan8
+            Joshua Kakkanad, jkakk2
+    Project Name: Defusing Bomb
+    Abstract: Our project will be a defusing bomb game which times the player to solve the puzzle in order to defuse the bomb before the timer runs out. 
+            The player has to solve a series of puzzles which are all required to be solved in order to get the password which defuses the bomb. 
+            Once the bomb has been defused the player(s) will be rewarded with a prize.
+
+*/
+
 #include <LiquidCrystal.h>
 
 
