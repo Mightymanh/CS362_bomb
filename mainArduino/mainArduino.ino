@@ -2,7 +2,7 @@
 #include <LiquidCrystal.h>
 #include <Servo.h>
 
-char introMessage[] = "Welcome player! Please pay attention to this screen. "
+char introMessage[] = "                Welcome player! Please pay attention to this screen. "
                     "Your job is to defuse a bomb triggered by the CS 362 Riddlers working at Troy's Organization. "
                     "Your goal is to cut the correct wire in under 5 minutes (300 seconds). "
                     "Good luck with your defusal journey and your timer starts very soon **HAHAHAHAHAHAHAHAHAHAHA** - CS 362 Riddlers ";
@@ -106,27 +106,28 @@ void rollMessage(char* message) {
     int count = 0;
     writeRow(1, "Press to skip");
     do {
-
         if (end - temp >= 16) sizeDisplay = 16;
         else sizeDisplay = end - temp;
         holder = temp[sizeDisplay];
         temp[sizeDisplay] = '\0';
 
         writeRow(0, temp);
+        //Serial.println(temp);
 
         temp[sizeDisplay] = holder;
 
         temp++;
         prevMillis = millis();
         currentMillis = millis();
+        
         while (currentMillis - prevMillis < 225) {
+            
             if (IR.decode()) { // skip
                 valFromRemote = IR.decodedIRData.decodedRawData;
-                if (valFromRemote != 0) {
-                    if (count == 2) return;
-                    else count++;
-                }
                 IR.resume();
+                if (valFromRemote == 0xBA45FF00) {
+                    return;
+                }
             }
             currentMillis = millis();
         }
@@ -230,10 +231,6 @@ void updateFromPuzzler() {
     // signals from puzzle arduino
     if (Serial.available()) {
         signalReceived = Serial.read();
-
-        char output[100];
-        sprintf(output, "signal R: %c", signalReceived);
-        writeRow(0, output);
     } 
 }
 
@@ -242,28 +239,22 @@ void updateFromRemote() {
     // signals from remote control
     if (IR.decode()) {  
         valFromRemote = IR.decodedIRData.decodedRawData;
-        if (valFromRemote != 0) {  // 0 is a ghost message from the remote, thats what I think
+        IR.resume(); 
+
+        if (valFromRemote == 0xBA45FF00) {  // 0 is a ghost message from the remote, thats what I think
             if (countResetStart == 0) {
                 Serial.write('4');
                 bombStatus = -1;
                 writeRow(0, "Reset Bomb");
                 writeRow(1, "Press to start");
-                countResetStart++;
+                countResetStart = 1;
             }
 
-            else if (countResetStart == 2) { 
+            else if (countResetStart == 1) { 
                 freshStart();
-                countResetStart++;
-            }  
-            else if (countResetStart == 4) {
                 countResetStart = 0;
-            } 
-            else {
-                countResetStart++;
-            }
-
+            }  
         }
-        IR.resume(); 
     }
 }
 
